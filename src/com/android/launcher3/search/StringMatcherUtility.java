@@ -20,6 +20,13 @@ import android.text.TextUtils;
 
 import com.android.launcher3.util.IntArray;
 
+import net.sourceforge.pinyin4j.PinyinHelper;
+import net.sourceforge.pinyin4j.format.HanyuPinyinCaseType;
+import net.sourceforge.pinyin4j.format.HanyuPinyinOutputFormat;
+import net.sourceforge.pinyin4j.format.HanyuPinyinToneType;
+import net.sourceforge.pinyin4j.format.HanyuPinyinVCharType;
+import net.sourceforge.pinyin4j.format.exception.BadHanyuPinyinOutputFormatCombination;
+
 import java.text.Collator;
 import java.util.stream.IntStream;
 
@@ -28,6 +35,7 @@ import java.util.stream.IntStream;
  */
 public class StringMatcherUtility {
 
+
     private static final Character SPACE = ' ';
 
     /**
@@ -35,6 +43,33 @@ public class StringMatcherUtility {
      * break target to valid substring is defined in the given {@code matcher}.
      */
     public static boolean matches(String query, String target, StringMatcher matcher) {
+//        query -- edittext
+        HanyuPinyinOutputFormat format = new HanyuPinyinOutputFormat();
+        format.setToneType(HanyuPinyinToneType.WITHOUT_TONE);//不显示音标
+        format.setVCharType(HanyuPinyinVCharType.WITH_V);//“ü”输出V
+        format.setCaseType(HanyuPinyinCaseType.LOWERCASE);//拼音输出小写
+
+        if (target == null)
+            return false;
+
+        char[] charArray = target.toCharArray();
+        StringBuilder result = new StringBuilder();
+        for (char c : charArray) {
+            try {
+                String[] pinyinStringArray = PinyinHelper.toHanyuPinyinStringArray(c, format);
+                if (pinyinStringArray != null) {
+                    for (String s : pinyinStringArray) {
+                        result.append(s);
+                    }
+                }
+            } catch (BadHanyuPinyinOutputFormatCombination e) {
+//                throw new RuntimeException(e);
+            }
+        }
+
+        if (result.toString().contains(query))
+            return true;
+
         int queryLength = query.length();
 
         int targetLength = target.length();
@@ -56,9 +91,9 @@ public class StringMatcherUtility {
             lastType = thisType;
             thisType = nextType;
             nextType = i < (targetLength - 1)
-                    ? Character.getType(target.codePointAt(i + 1)) : Character.UNASSIGNED;
+                ? Character.getType(target.codePointAt(i + 1)) : Character.UNASSIGNED;
             if (matcher.isBreak(thisType, lastType, nextType)
-                    && matcher.matches(query, target.substring(i, i + queryLength))) {
+                && matcher.matches(query, target.substring(i, i + queryLength))) {
                 return true;
             }
         }
@@ -78,9 +113,9 @@ public class StringMatcherUtility {
             // position of the spaces - 1. This is to make the logic consistent where breakpoints
             // are placed
             return IntArray.wrap(IntStream.range(0, inputLength)
-                    .filter(i -> input.charAt(i) == SPACE)
-                    .map(i -> i - 1)
-                    .toArray());
+                .filter(i -> input.charAt(i) == SPACE)
+                .map(i -> i - 1)
+                .toArray());
         }
         IntArray listOfBreakPoints = new IntArray();
         int prevType;
@@ -90,11 +125,11 @@ public class StringMatcherUtility {
             prevType = thisType;
             thisType = nextType;
             nextType = i < (inputLength - 1)
-                    ? Character.getType(Character.codePointAt(input, i + 1))
-                    : Character.UNASSIGNED;
+                ? Character.getType(Character.codePointAt(input, i + 1))
+                : Character.UNASSIGNED;
             if (matcher.isBreak(thisType, prevType, nextType)) {
                 // breakpoint is at previous
-                listOfBreakPoints.add(i-1);
+                listOfBreakPoints.add(i - 1);
             }
         }
         return listOfBreakPoints;
@@ -141,13 +176,13 @@ public class StringMatcherUtility {
 
         /**
          * Returns true if the current point should be a break point.
-         *
+         * <p>
          * Following cases are considered as break points:
-         *     1) Any non space character after a space character
-         *     2) Any digit after a non-digit character
-         *     3) Any capital character after a digit or small character
-         *     4) Any capital character before a small character
-         *
+         * 1) Any non space character after a space character
+         * 2) Any digit after a non-digit character
+         * 3) Any capital character after a digit or small character
+         * 4) Any capital character before a small character
+         * <p>
          * E.g., "YouTube" matches the input "you" and "tube", but not "out".
          */
         protected boolean isBreak(int thisType, int prevType, int nextType) {
@@ -163,8 +198,8 @@ public class StringMatcherUtility {
                     // takes care of the case where there are consistent uppercase letters as well
                     // as a special symbol following the capitalize letters for example: LEGO®
                     if (nextType != Character.UPPERCASE_LETTER && nextType != Character.OTHER_SYMBOL
-                            && nextType != Character.DECIMAL_DIGIT_NUMBER
-                            && nextType != Character.UNASSIGNED) {
+                        && nextType != Character.DECIMAL_DIGIT_NUMBER
+                        && nextType != Character.UNASSIGNED) {
                         return true;
                     }
                     // Follow through
@@ -179,8 +214,8 @@ public class StringMatcherUtility {
                 case Character.OTHER_NUMBER:
                     // Break point if previous was not a number
                     return !(prevType == Character.DECIMAL_DIGIT_NUMBER
-                            || prevType == Character.LETTER_NUMBER
-                            || prevType == Character.OTHER_NUMBER);
+                        || prevType == Character.LETTER_NUMBER
+                        || prevType == Character.OTHER_NUMBER);
                 case Character.MATH_SYMBOL:
                 case Character.CURRENCY_SYMBOL:
                 case Character.OTHER_PUNCTUATION:
@@ -188,7 +223,7 @@ public class StringMatcherUtility {
                     // Always a break point for a symbol
                     return true;
                 default:
-                    return  false;
+                    return false;
             }
         }
     }

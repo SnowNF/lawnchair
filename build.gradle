@@ -323,6 +323,9 @@ dependencies {
     withQuickstepImplementation projects.systemUnFold
     withQuickstepImplementation projects.systemUIViewCapture
 
+    //pinyin libaray
+    implementation fileTree(dir: FRAMEWORK_PREBUILTS_DIR, include: 'pinyin4j-2.5.0.jar')
+
     implementation fileTree(dir: FRAMEWORK_PREBUILTS_DIR, include: 'SystemUI-statsd.jar')
     implementation fileTree(dir: FRAMEWORK_PREBUILTS_DIR, include: 'WindowManager-Shell.jar')
     withQuickstepCompileOnly fileTree(dir: FRAMEWORK_PREBUILTS_DIR, include: 'seeder.jar')
