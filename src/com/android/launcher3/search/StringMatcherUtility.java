@@ -28,6 +28,7 @@ import net.sourceforge.pinyin4j.format.HanyuPinyinVCharType;
 import net.sourceforge.pinyin4j.format.exception.BadHanyuPinyinOutputFormatCombination;
 
 import java.text.Collator;
+import java.util.ArrayList;
 import java.util.stream.IntStream;
 
 /**
@@ -52,18 +53,33 @@ public class StringMatcherUtility {
         if (target == null)
             return false;
 
+        char[] queryCharArray = query.toCharArray();
+
         char[] charArray = target.toCharArray();
         StringBuilder result = new StringBuilder();
+        ArrayList<String> firsts = new ArrayList<>();
         for (char c : charArray) {
             try {
                 String[] pinyinStringArray = PinyinHelper.toHanyuPinyinStringArray(c, format);
                 if (pinyinStringArray != null) {
+                    if (pinyinStringArray.length > 0 && pinyinStringArray[0].toCharArray().length > 0)
+                        firsts.add(pinyinStringArray[0]);
                     for (String s : pinyinStringArray) {
                         result.append(s);
                     }
                 }
             } catch (BadHanyuPinyinOutputFormatCombination e) {
 //                throw new RuntimeException(e);
+            }
+        }
+
+        for (int i = 0; i < queryCharArray.length && i < firsts.size(); i++) {
+            char c = queryCharArray[i];
+            if (c != firsts.get(i).charAt(0)) {
+                break;
+            }
+            if (i == queryCharArray.length - 1) {
+                return true;
             }
         }
 

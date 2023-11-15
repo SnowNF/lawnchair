@@ -124,7 +124,7 @@ class LawnchairAppSearchAlgorithm(context: Context) : LawnchairSearchAlgorithm(c
         return apps.asSequence()
             .filter { StringMatcherUtility.matches(queryTextLower, it.title.toString(), matcher) }
             .filterHiddenApps(queryTextLower)
-            .take(maxResultsCount)
+//            .take(maxResultsCount)
             .toList()
     }
 
