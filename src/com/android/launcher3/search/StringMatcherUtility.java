@@ -39,22 +39,19 @@ public class StringMatcherUtility {
 
     private static final Character SPACE = ' ';
 
+    private static final HanyuPinyinOutputFormat format = new HanyuPinyinOutputFormat();
+
+    static {
+        format.setToneType(HanyuPinyinToneType.WITHOUT_TONE);
+        format.setVCharType(HanyuPinyinVCharType.WITH_V);//“ü” -> V
+        format.setCaseType(HanyuPinyinCaseType.LOWERCASE);
+    }
+
     /**
      * Returns {@code true} if {@code query} is a prefix of a substring in {@code target}. How to
      * break target to valid substring is defined in the given {@code matcher}.
      */
     public static boolean matches(String query, String target, StringMatcher matcher) {
-//        query -- edittext
-        HanyuPinyinOutputFormat format = new HanyuPinyinOutputFormat();
-        format.setToneType(HanyuPinyinToneType.WITHOUT_TONE);//不显示音标
-        format.setVCharType(HanyuPinyinVCharType.WITH_V);//“ü”输出V
-        format.setCaseType(HanyuPinyinCaseType.LOWERCASE);//拼音输出小写
-
-        if (target == null)
-            return false;
-
-        char[] queryCharArray = query.toCharArray();
-
         char[] charArray = target.toCharArray();
         StringBuilder result = new StringBuilder();
         ArrayList<String> firsts = new ArrayList<>();
@@ -68,11 +65,11 @@ public class StringMatcherUtility {
                         result.append(s);
                     }
                 }
-            } catch (BadHanyuPinyinOutputFormatCombination e) {
-//                throw new RuntimeException(e);
+            } catch (BadHanyuPinyinOutputFormatCombination ignored) {
             }
         }
 
+        char[] queryCharArray = query.toCharArray();
         for (int i = 0; i < queryCharArray.length && i < firsts.size(); i++) {
             char c = queryCharArray[i];
             if (c != firsts.get(i).charAt(0)) {
@@ -82,9 +79,7 @@ public class StringMatcherUtility {
                 return true;
             }
         }
-
-        if (result.toString().contains(query))
-            return true;
+        target = result + target;
 
         int queryLength = query.length();
 
